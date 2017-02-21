@@ -1,9 +1,21 @@
 package com.example.vignesh.digitalkx;
 
+import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import static com.example.vignesh.digitalkx.R.id.bSignup;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -12,11 +24,49 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        EditText etName = (EditText) findViewById(R.id.etName);
-        EditText etUsername = (EditText) findViewById(R.id.etUsername);
-        EditText etPassword = (EditText) findViewById(R.id.etPassword);
+        final EditText etName = (EditText) findViewById(R.id.etName);
+        final EditText etUsername = (EditText) findViewById(R.id.etUsername);
+        final EditText etPassword = (EditText) findViewById(R.id.etPassword);
 
-        Button bSignin = (Button) findViewById(R.id.bSignup);
+        Button bSignup = (Button) findViewById(R.id.bSignup);
+        bSignup.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v) {
+                final String name=etName.getText().toString();
+                final String username=etUsername.getText().toString();
+                final String password=etPassword.getText().toString();
+
+                Response.Listener<String> responselistener= new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject jsonObject=new JSONObject(response);
+                            boolean success =jsonObject.getBoolean("success");
+                            if(success)
+                            {
+                                Intent intent = new Intent(RegisterActivity.this,MainActivity.class);
+                                RegisterActivity.this.startActivity(intent);
+                            }
+                            else
+                            {
+                                AlertDialog.Builder builder=new AlertDialog.Builder(RegisterActivity.this);
+                                builder.setMessage("Registration Failed!\nTry Again");
+                                builder.setNegativeButton("Retry",null);
+                                builder.create();
+                                builder.show();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+
+                Registerrequest registerrequest=new Registerrequest(name,username,password,responselistener);
+                RequestQueue que = Volley.newRequestQueue(RegisterActivity.this);
+                que.add(registerrequest);
+            }
+        });
 
     }
 }
